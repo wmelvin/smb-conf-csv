@@ -5,9 +5,10 @@
 #
 # Extract some fields from a smb.conf file and output in CSV format.
 # This is a manual edit-and-run tool with hard-coded paths, for now.
-# 
 #
-# 2020-12-16
+# ./smb-conf-to-csv.py > smb-conf-to-csv-output.csv
+#
+# 2020-12-16 
 #----------------------------------------------------------------------
 
 from pathlib import Path
@@ -22,8 +23,32 @@ if not p.exists():
 with open(p, 'r') as f:
     lines = f.readlines()
 
+shares_list = []
+shares_list.append('"SHARE","PATH"')
+share_name = ''
+share_path = ''
+
 for line in lines:
-    print(line)
+    #print(line)
+    s = line.strip()
+    if len(s) > 0:
+        if s.startswith('['):
+            if len(share_path) > 0:
+                shares_list.append('"{0}","{1}"'.format(share_name, share_path))
+            share_name = s.replace('[', '').replace(']', '')
+            share_path = ''
+            #print(share_name)
+        elif '=' in s:
+            a = s.split('=')
+            if a[0].strip().lower() == 'path':
+                share_path = a[1].strip()
+# Get last one.
+if len(share_path) > 0:
+    shares_list.append('"{0}","{1}"'.format(share_name, share_path))
+
+for item in shares_list:
+    print(item)
+
 
 
 # def get_option_entries(opt_section, opt_content):
