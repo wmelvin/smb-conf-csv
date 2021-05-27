@@ -13,7 +13,8 @@
 
 from pathlib import Path
 
-smb_file = Path.cwd() / "smb.conf.copy-20201216.txt"
+#smb_file = Path.cwd() / "smb.conf.copy-20201216.txt"
+smb_file = Path.cwd() / "smb.conf.copy-20210123.txt"
 
 p = Path(smb_file).resolve()
 
