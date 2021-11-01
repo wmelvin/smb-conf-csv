@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 """
-Read a Samba configuration file (smb.conf) and write share names and paths
-as CSV format.
+This console application reads a Samba configuration file (smb.conf) and
+writes some information about the shares to CSV format.
 """
 
 
@@ -12,8 +12,51 @@ from datetime import datetime
 from pathlib import Path
 
 
+class ShareInfo():
+    def __init__(self, share_name: str, line_num: int):
+        self.share_name = share_name
+        self.line_num = line_num
+        self.path = ""
+        self.force_user = ""
+        self.force_group = ""
+        self.browseable = ""
+        self.guest_ok = ""
+        self.read_only = ""
+        self.valid_users = ""
+        self.write_list = ""
+
+    def csv_data(self):
+        return '"{}","{}","{}","{}","{}","{}","{}","{}","{}","{}",'.format(
+            self.share_name,
+            self.line_num,
+            self.path,
+            self.force_user,
+            self.force_group,
+            self.browseable,
+            self.guest_ok,
+            self.read_only,
+            self.valid_users,
+            self.write_list,
+        )
+
+
+def csv_header():
+    return '"{}","{}","{}","{}","{}","{}","{}","{}","{}","{}",'.format(
+        "share_name",
+        "line_num",
+        "path",
+        "force_user",
+        "force_group",
+        "browseable",
+        "guest_ok",
+        "read_only",
+        "valid_users",
+        "write_list",
+    )
+
+
 def print_usage():
-    print("Usage: smb_conf_csv.py  input_file [-o output_file]")
+    print("Usage: smb_conf_csv.py  input_file  [-o output_name]")
     print("Where:")
     print("  input_file = Path to the smb.conf file to be read.")
     print("  output_name = Name of the CSV file to be written.")
@@ -44,46 +87,73 @@ def main(argv):
         return 1
 
     if out_path is not None:
-        #  Only print this message when writing to a file in case console
-        #  output is being redirected.
+        #  Only print this message when writing to a file.
+        #  Not wanted if console output is being redirected.
         print(f"Reading '{in_path}'")
 
-    with open(in_path, 'r') as f:
+    with open(in_path, "r") as f:
         lines = f.readlines()
 
     shares_list = []
-    shares_list.append('"SHARE","PATH","CONF_LINE"')
-    share_name = ''
-    share_path = ''
-    share_line = 0
+    # shares_list.append('"SHARE","PATH","VALID_USERS","LINE#"')
+    shares_list.append(csv_header())
 
-    line_num = 0
-    for line in lines:
-        line_num += 1
-        # print(line)
+    # share_name = ""
+    # share_path = ""
+    # valid_users = ""
+    # share_line = 0
+
+    share_info = None
+
+    for line_num, line in enumerate(lines, start=1):
         s = line.strip()
         if len(s) > 0:
-            if s.startswith('['):
-                if len(share_path) > 0:
-                    shares_list.append(
-                        '"{0}","{1}",{2}'.format(
-                            share_name, share_path, share_line
-                        )
-                    )
-                share_name = s.replace('[', '').replace(']', '')
-                share_path = ''
-                share_line = line_num
-                # print(share_name)
-            elif '=' in s:
-                a = s.split('=')
-                if a[0].strip().lower() == 'path':
-                    share_path = a[1].strip()
+            if s.startswith("["):
+                # if len(share_path) > 0:
+                #     shares_list.append(
+                #         '"{0}","{1}","{2}",{3}'.format(
+                #             share_name, share_path, valid_users, share_line
+                #         )
+                #     )
+
+                if share_info is not None:
+                    shares_list.append(share_info.csv_data())
+                    share_info = None
+
+                # share_name = s.replace("[", "").replace("]", "")
+                # share_path = ""
+                # valid_users = ""
+                # share_line = line_num
+
+                share_info = ShareInfo(
+                    s.replace("[", "").replace("]", ""),
+                    line_num
+                )
+
+            elif "=" in s:
+                a = s.split("=", 1)
+                opt_name = a[0].strip().lower()
+                opt_value = a[1].strip()
+                # if opt_name == "path":
+                #     share_path = opt_value
+                # elif opt_name == "valid users":
+                #     valid_users = opt_value
+
+                if opt_name == "path":
+                    share_info.path = opt_value
+                elif opt_name == "valid users":
+                    share_info.valid_users = opt_value
 
     #  Get the last one.
-    if len(share_path) > 0:
-        shares_list.append(
-            '"{0}","{1}",{2}'.format(share_name, share_path, share_line)
-        )
+    # if len(share_path) > 0:
+    #     shares_list.append(
+    #         '"{0}","{1}","{2}",{3}'.format(
+    #             share_name, share_path, valid_users, share_line
+    #         )
+    #     )
+
+    if share_info is not None:
+        shares_list.append(share_info.csv_data())
 
     if out_path is None:
         for item in shares_list:
@@ -97,5 +167,5 @@ def main(argv):
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main(sys.argv))
