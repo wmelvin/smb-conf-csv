@@ -119,6 +119,18 @@ def main(argv):
                     share_info.path = opt_value
                 elif opt_name == "valid users":
                     share_info.valid_users = opt_value
+                elif opt_name == "force user":
+                    share_info.force_user = opt_value
+                elif opt_name == "force group":
+                    share_info.force_group = opt_value
+                elif opt_name == "browseable":
+                    share_info.browseable = opt_value
+                elif opt_name == "guest ok":
+                    share_info.guest_ok = opt_value
+                elif opt_name == "read only":
+                    share_info.read_only = opt_value
+                elif opt_name == "write list":
+                    share_info.write_list = opt_value
 
     #  Get the last one.
     if share_info is not None:
