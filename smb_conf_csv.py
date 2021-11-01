@@ -25,10 +25,10 @@ class ShareInfo():
         self.valid_users = ""
         self.write_list = ""
 
-    def csv_data(self):
+    def as_csv(self):
         return '"{}","{}","{}","{}","{}","{}","{}","{}","{}","{}",'.format(
-            self.share_name,
             self.line_num,
+            self.share_name,
             self.path,
             self.force_user,
             self.force_group,
@@ -42,8 +42,8 @@ class ShareInfo():
 
 def csv_header():
     return '"{}","{}","{}","{}","{}","{}","{}","{}","{}","{}",'.format(
-        "share_name",
         "line_num",
+        "share_name",
         "path",
         "force_user",
         "force_group",
@@ -94,14 +94,8 @@ def main(argv):
     with open(in_path, "r") as f:
         lines = f.readlines()
 
-    shares_list = []
-    # shares_list.append('"SHARE","PATH","VALID_USERS","LINE#"')
-    shares_list.append(csv_header())
-
-    # share_name = ""
-    # share_path = ""
-    # valid_users = ""
-    # share_line = 0
+    out_list = []
+    out_list.append(csv_header())
 
     share_info = None
 
@@ -109,21 +103,8 @@ def main(argv):
         s = line.strip()
         if len(s) > 0:
             if s.startswith("["):
-                # if len(share_path) > 0:
-                #     shares_list.append(
-                #         '"{0}","{1}","{2}",{3}'.format(
-                #             share_name, share_path, valid_users, share_line
-                #         )
-                #     )
-
                 if share_info is not None:
-                    shares_list.append(share_info.csv_data())
-                    share_info = None
-
-                # share_name = s.replace("[", "").replace("]", "")
-                # share_path = ""
-                # valid_users = ""
-                # share_line = line_num
+                    out_list.append(share_info.as_csv())
 
                 share_info = ShareInfo(
                     s.replace("[", "").replace("]", ""),
@@ -134,34 +115,22 @@ def main(argv):
                 a = s.split("=", 1)
                 opt_name = a[0].strip().lower()
                 opt_value = a[1].strip()
-                # if opt_name == "path":
-                #     share_path = opt_value
-                # elif opt_name == "valid users":
-                #     valid_users = opt_value
-
                 if opt_name == "path":
                     share_info.path = opt_value
                 elif opt_name == "valid users":
                     share_info.valid_users = opt_value
 
     #  Get the last one.
-    # if len(share_path) > 0:
-    #     shares_list.append(
-    #         '"{0}","{1}","{2}",{3}'.format(
-    #             share_name, share_path, valid_users, share_line
-    #         )
-    #     )
-
     if share_info is not None:
-        shares_list.append(share_info.csv_data())
+        out_list.append(share_info.as_csv())
 
     if out_path is None:
-        for item in shares_list:
+        for item in out_list:
             print(item)
     else:
         print(f"Writing '{out_path}'")
         with open(out_path, "w") as f:
-            for item in shares_list:
+            for item in out_list:
                 f.write(f"{item}\n")
 
     return 0
