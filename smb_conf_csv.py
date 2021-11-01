@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 
-class ShareInfo():
+class ShareInfo:
     def __init__(self, share_name: str, line_num: int):
         self.share_name = share_name
         self.line_num = line_num
@@ -25,6 +25,9 @@ class ShareInfo():
         self.valid_users = ""
         self.write_list = ""
 
+    def has_data(self):
+        return 0 < len(self.path)
+
     def as_csv(self):
         return '"{}","{}","{}","{}","{}","{}","{}","{}","{}","{}",'.format(
             self.line_num,
@@ -34,8 +37,8 @@ class ShareInfo():
             self.force_group,
             self.browseable,
             self.guest_ok,
-            self.read_only,
             self.valid_users,
+            self.read_only,
             self.write_list,
         )
 
@@ -49,21 +52,21 @@ def csv_header():
         "force_group",
         "browseable",
         "guest_ok",
-        "read_only",
         "valid_users",
+        "read_only",
         "write_list",
     )
 
 
 def print_usage():
-    print("Usage: smb_conf_csv.py  input_file  [-o output_name]")
+    print("\nUsage: smb_conf_csv.py  input_file  [-o output_name]")
     print("Where:")
-    print("  input_file = Path to the smb.conf file to be read.")
-    print("  output_name = Name of the CSV file to be written.")
+    print("  input_file = Path to the smb.conf file to be read. (Required)")
+    print("  output_name = Name of the CSV file to be written. (Optional)")
     print("    The output_name is used to specifiy the base name.")
     print("    A date_time tag, and '.csv' extension are added.")
     print("    If no output_name is specified, output is written")
-    print("    to the console.")
+    print("    to the console.\n")
 
 
 def main(argv):
@@ -103,12 +106,11 @@ def main(argv):
         s = line.strip()
         if len(s) > 0:
             if s.startswith("["):
-                if share_info is not None:
+                if share_info is not None and share_info.has_data():
                     out_list.append(share_info.as_csv())
 
                 share_info = ShareInfo(
-                    s.replace("[", "").replace("]", ""),
-                    line_num
+                    s.replace("[", "").replace("]", ""), line_num
                 )
 
             elif "=" in s:
@@ -123,17 +125,19 @@ def main(argv):
                     share_info.force_user = opt_value
                 elif opt_name == "force group":
                     share_info.force_group = opt_value
-                elif opt_name == "browseable":
-                    share_info.browseable = opt_value
                 elif opt_name == "guest ok":
                     share_info.guest_ok = opt_value
                 elif opt_name == "read only":
                     share_info.read_only = opt_value
                 elif opt_name == "write list":
                     share_info.write_list = opt_value
+                elif opt_name == "browseable":
+                    share_info.browseable = opt_value
+                elif opt_name == "browsable":
+                    share_info.browseable = opt_value
 
     #  Get the last one.
-    if share_info is not None:
+    if share_info is not None and share_info.has_data():
         out_list.append(share_info.as_csv())
 
     if out_path is None:
