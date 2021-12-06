@@ -9,7 +9,13 @@ writes some information about the shares to CSV format.
 import sys
 
 from datetime import datetime
+from textwrap import dedent
 from pathlib import Path
+
+
+app_version = "211206.1"
+
+app_title = "smb_conf_csv_py (version {0})".format(app_version)
 
 
 class ShareInfo:
@@ -59,21 +65,43 @@ def csv_header():
 
 
 def print_usage():
-    print("\nUsage: smb_conf_csv.py  input_file  [-o output_name]")
-    print("Where:")
-    print("  input_file = Path to the smb.conf file to be read. (Required)")
-    print("  output_name = Name of the CSV file to be written. (Optional)")
-    print("    The output_name is used to specifiy the base name.")
-    print("    A date_time tag, and '.csv' extension are added.")
-    print("    If no output_name is specified, output is written")
-    print("    to the console.\n")
+    print("\n{0}\n".format(app_title))
+    print(
+        dedent(
+            """
+            Usage: smb_conf_csv.py  INPUT_FILE  [-o OUTPUT_NAME]
+
+            Reads a Samba configuration file (smb.conf) and writes
+            some information about the shares to CSV format.
+
+            INPUT_FILE
+                            Path to the smb.conf file to be read (Required).
+
+            -o OUTPUT_NAME
+                            Name of the CSV file to be written (Optional).
+                            The output_name is used to specifiy the base name.
+                            A date_time tag, and '.csv' extension are added.
+                            If no output_name is specified, output is written
+                            to the console.
+            """
+        )
+    )
 
 
 def main(argv):
 
-    if not len(argv) in [2, 4]:
+    if len(argv) not in [2, 4]:
         print_usage()
         return 2
+
+    if (len(argv) == 2) and (argv[1].lower() in ["-h", "--help"]):
+        print_usage()
+        return 2
+
+    #  Only print extra information when writing to a file.
+    #  Keep console output data-only.
+    if len(argv) == 4:
+        print("\n{0}\n".format(app_title))
 
     out_path = None
     if len(argv) == 4:
@@ -90,8 +118,6 @@ def main(argv):
         return 1
 
     if out_path is not None:
-        #  Only print this message when writing to a file.
-        #  Not wanted if console output is being redirected.
         print(f"Reading '{in_path}'")
 
     with open(in_path, "r") as f:
