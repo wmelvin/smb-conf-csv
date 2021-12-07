@@ -79,7 +79,7 @@ def print_usage():
 
             -o OUTPUT_NAME
                             Name of the CSV file to be written (Optional).
-                            The output_name is used to specifiy the base name.
+                            The output_name is used to specify the base name.
                             A date_time tag, and '.csv' extension are added.
                             If no output_name is specified, output is written
                             to the console.
