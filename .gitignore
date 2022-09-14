@@ -14,5 +14,5 @@ __pycache__/
 _0_bak/
 input/
 output/
-run-sausage.sh
+sausage.sh
 wipbak-list.txt
